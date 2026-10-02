@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "675103316491",
+    "project_id": "chatfirebaseicc451",
+    "storage_bucket": "chatfirebaseicc451.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:675103316491:android:66819b732e3e092d80450e",
+        "android_client_info": {
+          "package_name": "com.ianalvarez.chatfirebaseicc451"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBmpI0bDZANmeoHTZ_9uvPoV2Zj4W5TPlA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
