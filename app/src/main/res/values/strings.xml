@@ -7,4 +7,10 @@
     <string name="register_confirm_password_hint">Confirmar contraseña</string>
     <string name="register_button">Registrarme</string>
     <string name="already_have_account">Ya tengo una cuenta</string>
+
+    <string name="login_title">Iniciar sesión</string>
+    <string name="login_email_hint">Correo electrónico</string>
+    <string name="login_password_hint">Contraseña</string>
+    <string name="login_button">Iniciar sesión</string>
+    <string name="create_account">Crear una cuenta</string>
 </resources>

@@ -19,41 +19,40 @@ public class AuthRepository {
         void onError(String message);
     }
 
-    public void register(String name, String email, String password,
-                         RegisterCallback callback) {
+    public interface LoginCallback{
+        void onSuccess();
+        void onError(String message);
+    }
 
-        auth.createUserWithEmailAndPassword(email, password)
-                .addOnCompleteListener(task -> {
+    public void register(String name, String email, String password, RegisterCallback callback) {
 
-                    if (!task.isSuccessful()) {
-                        String message = task.getException() != null
-                                ? task.getException().getMessage()
-                                : "No se pudo crear la cuenta.";
+        auth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(task -> {
 
-                        callback.onError(message);
-                        return;
-                    }
+            if (!task.isSuccessful()) {
+                String message = task.getException() != null ? task.getException().getMessage() : "No se pudo crear la cuenta.";
 
-                    FirebaseUser firebaseUser = auth.getCurrentUser();
+                callback.onError(message);
+                return;
+            }
 
-                    if (firebaseUser == null) {
-                        callback.onError("No se pudo obtener el usuario creado.");
-                        return;
-                    }
+            FirebaseUser firebaseUser = auth.getCurrentUser();
 
-                    User user = new User(
-                            firebaseUser.getUid(),
-                            name,
-                            email
-                    );
+            if (firebaseUser == null) {
+                callback.onError("No se pudo obtener el usuario creado.");
+                return;
+            }
 
-                    db.collection("users")
-                            .document(firebaseUser.getUid())
-                            .set(user)
-                            .addOnSuccessListener(unused -> callback.onSuccess())
-                            .addOnFailureListener(error ->
-                                    callback.onError("La cuenta fue creada, pero no se pudo guardar el perfil.")
-                            );
-                });
+            User user = new User(firebaseUser.getUid(), name, email);
+
+            db.collection("users").document(firebaseUser.getUid()).set(user)
+                    .addOnSuccessListener(unused -> callback.onSuccess())
+                    .addOnFailureListener(error -> callback.onError("La cuenta fue creada, pero no se pudo guardar el perfil."));
+        });
+    }
+
+    public void login(String email, String password, LoginCallback callback) {
+        auth.signInWithEmailAndPassword(email,password)
+                .addOnSuccessListener(result -> callback.onSuccess())
+                .addOnFailureListener(error -> callback.onError(error.getMessage()));
     }
 }

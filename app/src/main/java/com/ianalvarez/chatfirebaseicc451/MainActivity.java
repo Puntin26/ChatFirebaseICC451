@@ -5,7 +5,9 @@ import android.os.Bundle;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.ianalvarez.chatfirebaseicc451.ui.RegisterActivity;
+import com.google.firebase.auth.FirebaseAuth;
+import com.ianalvarez.chatfirebaseicc451.ui.LoginActivity;
+import com.ianalvarez.chatfirebaseicc451.ui.UsersActivity;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -13,7 +15,13 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        startActivity(new Intent(this, RegisterActivity.class));
+        if (FirebaseAuth.getInstance().getCurrentUser() != null) {
+            startActivity(new Intent(this, UsersActivity.class));
+
+        } else {
+            startActivity(new Intent(this, LoginActivity.class));
+        }
+
         finish();
     }
 }
