@@ -5,6 +5,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.util.Base64;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
@@ -75,6 +76,30 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
         return messageList.size();
     }
 
+        private static void showImage(ImageView view, Message message) {
+            Glide.with(view).clear(view);
+            view.setImageDrawable(null);
+
+            String base64 = message.getImageBase64();
+            String url = message.getImageUrl();
+
+            if (base64 != null && !base64.isEmpty()) {
+                view.setVisibility(View.VISIBLE);
+
+                try {
+                    byte[] bytes = Base64.decode(base64, Base64.NO_WRAP);
+                    Glide.with(view).load(bytes).error(android.R.drawable.ic_menu_report_image)
+                            .into(view);
+                } catch (IllegalArgumentException error) {
+                    view.setImageResource(android.R.drawable.ic_menu_report_image);
+                }
+            } else if (url != null && !url.isEmpty()) {
+                view.setVisibility(View.VISIBLE);
+                Glide.with(view).load(url).into(view);
+            } else {
+                view.setVisibility(View.GONE);
+            }
+        }
     static class SentMessageViewHolder extends RecyclerView.ViewHolder {
         TextView txtSentMessage, txtSentTime;
         ImageView imgSent;
@@ -96,13 +121,7 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
 
             txtSentTime.setText(time);
 
-            // La lógica de mostrar la imagen
-            if (message.getImageUrl() != null && !message.getImageUrl().isEmpty()) {
-                imgSent.setVisibility(View.VISIBLE);
-                Glide.with(itemView.getContext()).load(message.getImageUrl()).into(imgSent);
-            } else {
-                imgSent.setVisibility(View.GONE);
-            }
+            showImage(imgSent, message);
         }
     }
 
@@ -131,12 +150,7 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
             txtReceivedTime.setText(time);
 
             // La lógica de mostrar la imagen
-            if (message.getImageUrl() != null && !message.getImageUrl().isEmpty()) {
-                imgReceived.setVisibility(View.VISIBLE);
-                Glide.with(itemView.getContext()).load(message.getImageUrl()).into(imgReceived);
-            } else {
-                imgReceived.setVisibility(View.GONE);
-            }
+            showImage(imgReceived, message);
         }
     }
 }

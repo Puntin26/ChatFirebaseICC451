@@ -7,7 +7,7 @@ public class Message {
     private String text;
     private long timestamp;
     private String imageUrl; // Preparado para la tarea del Sábado (Envío de imágenes)
-
+    private String imageBase64;
     // Firebase necesita un constructor vacío obligatorio.
     public Message() {
     }
@@ -63,6 +63,14 @@ public class Message {
 
     public String getImageUrl() {
         return imageUrl;
+    }
+
+    public String getImageBase64() {
+        return imageBase64;
+    }
+
+    public void setImageBase64(String imageBase64) {
+        this.imageBase64 = imageBase64;
     }
 
     public void setImageUrl(String imageUrl) {

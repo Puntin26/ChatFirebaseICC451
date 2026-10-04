@@ -16,7 +16,7 @@
 
     <string name="profile_name_unavailable">Nombre no disponible</string>
     <string name="message_send_error">No se pudo enviar el mensaje. Intenta nuevamente.</string>
-    <string name="image_upload_error">No se pudo subir la imagen. Intenta nuevamente.</string>
+    <string name="image_upload_error">No se pudo preparar la imagen. Prueba con otra imagen más pequeña.</string>
     <string name="messages_read_error">No se pudo cargar el historial de mensajes.</string>
     <string name="users_read_error">No se pudo cargar la lista de usuarios.</string>
     <string name="profile_read_error">No se pudo cargar tu perfil.</string>

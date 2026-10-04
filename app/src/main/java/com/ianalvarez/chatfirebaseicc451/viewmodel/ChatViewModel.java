@@ -1,5 +1,6 @@
 package com.ianalvarez.chatfirebaseicc451.viewmodel;
 
+import android.content.ContentResolver;
 import android.net.Uri;
 
 import androidx.lifecycle.LiveData;
@@ -97,7 +98,7 @@ public class ChatViewModel extends ViewModel {
         saveMessage(chatId, message);
     }
 
-    public void sendImageMessage(String chatId, Uri imageUri) {
+    public void sendImageMessage(String chatId, Uri imageUri, ContentResolver resolver) {
         if (Boolean.TRUE.equals(sending.getValue())) {
             return;
         }
@@ -106,25 +107,24 @@ public class ChatViewModel extends ViewModel {
         clearSendResult();
         clearImageError();
 
-        chatRepository.uploadImage(imageUri, chatId,
+        chatRepository.encodeImage(resolver, imageUri,
                 new ChatRepository.UploadCallback() {
                     @Override
-                    public void onSuccess(String imageUrl) {
-                        Message message = new Message("", chatRepository.getCurrentUserId(), "", "",
-                                System.currentTimeMillis(), imageUrl
+                    public void onSuccess(String base64) {
+                        Message message = new Message("", chatRepository.getCurrentUserId(),
+                                "", "", System.currentTimeMillis(), null
                         );
 
-                        // Mantiene el bloqueo hasta confirmar el guardado.
+                        message.setImageBase64(base64);
                         saveMessage(chatId, message);
                     }
 
                     @Override
                     public void onError(String error) {
                         sending.setValue(false);
-                        imageError.setValue("upload_failed");
+                        imageError.setValue("conversion_failed");
                     }
-                }
-        );
+                });
     }
 
     public LiveData<List<Message>> getMessages(String chatId) {

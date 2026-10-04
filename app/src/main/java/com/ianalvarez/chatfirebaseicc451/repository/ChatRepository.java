@@ -10,8 +10,18 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
-import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.StorageReference;
+
+import android.content.ContentResolver;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.os.Handler;
+import android.os.Looper;
+import android.util.Base64;
+
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+
+
 import com.ianalvarez.chatfirebaseicc451.model.Message;
 
 import java.util.ArrayList;
@@ -21,7 +31,6 @@ public class ChatRepository {
 
     private final FirebaseFirestore firestore;
     private final FirebaseAuth auth;
-    private final FirebaseStorage storage;
     private final MutableLiveData<Boolean> messagesReadError = new MutableLiveData<>(false);
 
     public LiveData<Boolean> getMessagesReadError() {
@@ -35,7 +44,6 @@ public class ChatRepository {
     public ChatRepository() {
         firestore = FirebaseFirestore.getInstance();
         auth = FirebaseAuth.getInstance();
-        storage = FirebaseStorage.getInstance();
     }
 
     public String getCurrentUserId() {
@@ -102,20 +110,68 @@ public class ChatRepository {
         void onError(String error);
     }
 
-    public void uploadImage(Uri imageUri, String chatId, UploadCallback callback) {
-        // Creamos una referencia única para la imagen basada en el tiempo
-        String fileName = "chat_images/" + chatId + "/" + System.currentTimeMillis() + ".jpg";
-        StorageReference imageRef = storage.getReference().child(fileName);
+    public void encodeImage(ContentResolver resolver, Uri uri,
+                            UploadCallback callback) {
+        Handler main = new Handler(Looper.getMainLooper());
 
-        // Subimos la imagen
-        imageRef.putFile(imageUri)
-                .addOnSuccessListener(taskSnapshot -> {
-                    // Si se subió con éxito, obtenemos la URL pública
-                    imageRef.getDownloadUrl()
-                            .addOnSuccessListener(uri -> callback.onSuccess(uri.toString()))
-                            .addOnFailureListener(e -> callback.onError(e.getMessage()));
-                })
-                .addOnFailureListener(e -> callback.onError(e.getMessage()));
+        new Thread(() -> {
+            Bitmap bitmap = null;
+
+            try {
+                // Lee dimensiones sin cargar toda la imagen.
+                BitmapFactory.Options options = new BitmapFactory.Options();
+                options.inJustDecodeBounds = true;
+
+                try (InputStream input = resolver.openInputStream(uri)) {
+                    BitmapFactory.decodeStream(input, null, options);
+                }
+
+                if (options.outWidth <= 0 || options.outHeight <= 0) {
+                    throw new IllegalArgumentException("Imagen inválida");
+                }
+
+                // Reduce resolución antes de cargarla en memoria.
+                options.inSampleSize = 1;
+                while (Math.max(options.outWidth, options.outHeight)
+                        / options.inSampleSize > 512) {
+                    options.inSampleSize *= 2;
+                }
+
+                options.inJustDecodeBounds = false;
+
+                try (InputStream input = resolver.openInputStream(uri)) {
+                    bitmap = BitmapFactory.decodeStream(input, null, options);
+                }
+
+                if (bitmap == null) {
+                    throw new IllegalArgumentException("No se pudo leer la imagen");
+                }
+
+                ByteArrayOutputStream output = new ByteArrayOutputStream();
+
+                if (!bitmap.compress(Bitmap.CompressFormat.JPEG, 70, output)) {
+                    throw new IllegalStateException("No pudo comprimir");
+                }
+
+                byte[] bytes = output.toByteArray();
+
+                // Deja margen para Base64 y los demás campos del documento.
+                if (bytes.length > 400 * 1024) {
+                    throw new IllegalArgumentException("Imagen demasiado grande");
+                }
+
+                String base64 = Base64.encodeToString(bytes, Base64.NO_WRAP);
+                main.post(() -> callback.onSuccess(base64));
+
+            } catch (Exception error) {
+                Log.e("ChatRepository", "Error convirtiendo imagen", error);
+                main.post(() -> callback.onError(error.getMessage()));
+            } finally {
+                if (bitmap != null) {
+                    bitmap.recycle();
+                }
+            }
+        }).start();
     }
 
     public LiveData<List<Message>> getMessages(String chatId) {

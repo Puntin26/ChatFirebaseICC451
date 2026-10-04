@@ -65,7 +65,6 @@ public class ChatActivity extends AppCompatActivity {
 
         // Configuración de MVVM y RecyclerView
         chatViewModel = new ViewModelProvider(this).get(ChatViewModel.class);
-
         chatViewModel.getSending().observe(this, sending -> {
             boolean enabled = !Boolean.TRUE.equals(sending);
 
@@ -152,8 +151,9 @@ public class ChatActivity extends AppCompatActivity {
                 new ActivityResultContracts.GetContent(),
                 uri -> {
                     if (uri != null) {
-                        // Enviamos la URI de la imagen seleccionada para subirla a Storage
-                        chatViewModel.sendImageMessage(currentChatId, uri);
+                        // Convierte imagen y guarda su Base64 en el mensaje.
+                        chatViewModel.sendImageMessage(currentChatId, uri,
+                                getApplicationContext().getContentResolver());
                     }
                 }
         );
