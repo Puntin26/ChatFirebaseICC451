@@ -43,6 +43,7 @@ dependencies {
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-firestore")
     implementation("com.google.firebase:firebase-storage")
+    implementation("com.google.firebase:firebase-messaging")
     // Glide para cargar imágenes (lo usaremos en el MessageAdapter)
     implementation("com.github.bumptech.glide:glide:4.16.0")
     testImplementation(libs.junit)
