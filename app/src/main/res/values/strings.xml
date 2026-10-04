@@ -13,4 +13,11 @@
     <string name="login_password_hint">Contraseña</string>
     <string name="login_button">Iniciar sesión</string>
     <string name="create_account">Crear una cuenta</string>
+
+    <string name="profile_name_unavailable">Nombre no disponible</string>
+    <string name="message_send_error">No se pudo enviar el mensaje. Intenta nuevamente.</string>
+    <string name="image_upload_error">No se pudo subir la imagen. Intenta nuevamente.</string>
+    <string name="messages_read_error">No se pudo cargar el historial de mensajes.</string>
+    <string name="users_read_error">No se pudo cargar la lista de usuarios.</string>
+    <string name="profile_read_error">No se pudo cargar tu perfil.</string>
 </resources>

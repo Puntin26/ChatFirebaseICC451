@@ -15,6 +15,25 @@ public class ChatViewModel extends ViewModel {
 
     private final ChatRepository chatRepository;
     private LiveData<List<Message>> messagesLiveData;
+    private final MutableLiveData<Boolean> sending = new MutableLiveData<>(false);
+    private final MutableLiveData<String> sentText = new MutableLiveData<>();
+    private final MutableLiveData<Exception> sendError = new MutableLiveData<>();
+    private final MutableLiveData<String> imageError = new MutableLiveData<>();
+
+    public LiveData<String> getImageError() {
+        return imageError;
+    }
+    public LiveData<Boolean> getMessagesReadError() {
+        return chatRepository.getMessagesReadError();
+    }
+
+    public void clearMessagesReadError() {
+        chatRepository.clearMessagesReadError();
+    }
+
+    public void clearImageError() {
+        imageError.setValue(null);
+    }
 
     public ChatViewModel() {
         chatRepository = new ChatRepository();
@@ -24,41 +43,88 @@ public class ChatViewModel extends ViewModel {
         return chatRepository.getCurrentUserId();
     }
 
+    // Activity observará estos resultados.
+    public LiveData<Boolean> getSending() {
+        return sending;
+    }
+
+    public LiveData<String> getSentText() {
+        return sentText;
+    }
+
+    public LiveData<Exception> getSendError() {
+        return sendError;
+    }
+
+    // Limpia el resultado después de que pantalla lo atienda.
+    public void clearSendResult() {
+        sentText.setValue(null);
+        sendError.setValue(null);
+    }
+
+    // Envía al Repository y publica resultado mediante LiveData.
+    private void saveMessage(String chatId, Message message) {
+        sending.setValue(true);
+        clearSendResult();
+
+        chatRepository.sendMessage(chatId, message,
+                new ChatRepository.SendCallback() {
+                    @Override
+                    public void onSuccess() {
+                        sending.setValue(false);
+                        sentText.setValue(message.getText());
+                    }
+
+                    @Override
+                    public void onError(Exception error) {
+                        sending.setValue(false);
+                        sendError.setValue(error);
+                    }
+                });
+    }
+
     public void sendMessage(String chatId, String text) {
+
+        if (Boolean.TRUE.equals(sending.getValue())) {
+            return;
+        }
+
         String senderId = chatRepository.getCurrentUserId();
         String senderName = chatRepository.getCurrentUserName();
         long timestamp = System.currentTimeMillis();
 
         Message message = new Message("", senderId, senderName, text, timestamp, null);
-        chatRepository.sendMessage(chatId, message);
+        saveMessage(chatId, message);
     }
 
-    public void sendImageMessage(String chatId, Uri imageUri, MutableLiveData<Boolean> uploadState) {
-        // Indicamos que empezó a subir
-        uploadState.setValue(true);
-        
-        chatRepository.uploadImage(imageUri, chatId, new ChatRepository.UploadCallback() {
-            @Override
-            public void onSuccess(String imageUrl) {
-                // Cuando se sube la imagen, creamos el mensaje de texto vacío (o con la foto)
-                String senderId = chatRepository.getCurrentUserId();
-                String senderName = chatRepository.getCurrentUserName();
-                long timestamp = System.currentTimeMillis();
+    public void sendImageMessage(String chatId, Uri imageUri) {
+        if (Boolean.TRUE.equals(sending.getValue())) {
+            return;
+        }
 
-                // Aquí sí mandamos la URL de la imagen
-                Message message = new Message("", senderId, senderName, "", timestamp, imageUrl);
-                chatRepository.sendMessage(chatId, message);
-                
-                // Indicamos que terminó de subir
-                uploadState.setValue(false);
-            }
+        sending.setValue(true);
+        clearSendResult();
+        clearImageError();
 
-            @Override
-            public void onError(String error) {
-                // Indicamos que terminó (con error)
-                uploadState.setValue(false);
-            }
-        });
+        chatRepository.uploadImage(imageUri, chatId,
+                new ChatRepository.UploadCallback() {
+                    @Override
+                    public void onSuccess(String imageUrl) {
+                        Message message = new Message("", chatRepository.getCurrentUserId(), "", "",
+                                System.currentTimeMillis(), imageUrl
+                        );
+
+                        // Mantiene el bloqueo hasta confirmar el guardado.
+                        saveMessage(chatId, message);
+                    }
+
+                    @Override
+                    public void onError(String error) {
+                        sending.setValue(false);
+                        imageError.setValue("upload_failed");
+                    }
+                }
+        );
     }
 
     public LiveData<List<Message>> getMessages(String chatId) {

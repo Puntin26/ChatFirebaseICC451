@@ -22,6 +22,15 @@ public class ChatRepository {
     private final FirebaseFirestore firestore;
     private final FirebaseAuth auth;
     private final FirebaseStorage storage;
+    private final MutableLiveData<Boolean> messagesReadError = new MutableLiveData<>(false);
+
+    public LiveData<Boolean> getMessagesReadError() {
+        return messagesReadError;
+    }
+
+    public void clearMessagesReadError() {
+        messagesReadError.setValue(false);
+    }
 
     public ChatRepository() {
         firestore = FirebaseFirestore.getInstance();
@@ -43,15 +52,49 @@ public class ChatRepository {
         return "Anónimo";
     }
 
-    public void sendMessage(String chatId, Message message) {
-        // En Firestore, guardaremos los mensajes dentro de una subcolección "messages" de la colección "chats"
-        String messageId = firestore.collection("chats").document(chatId).collection("messages").document().getId();
-        message.setMessageId(messageId);
+    // Permite comunicar a ViewModel cómo terminó el envío.
+    public interface SendCallback {
+        void onSuccess();
+        void onError(Exception error);
+    }
 
-        firestore.collection("chats").document(chatId).collection("messages").document(messageId)
-                .set(message)
-                .addOnSuccessListener(aVoid -> Log.d("ChatRepository", "Mensaje enviado exitosamente"))
-                .addOnFailureListener(e -> Log.e("ChatRepository", "Error enviando el mensaje", e));
+    public void sendMessage(String chatId, Message message,
+                            SendCallback callback) {
+
+        String uid = getCurrentUserId();
+
+        if (uid == null) {
+            callback.onError(new IllegalStateException("No hay una sesión iniciada."));
+            return;
+        }
+
+        firestore.collection("users").document(uid).get()
+                .addOnSuccessListener(document -> {
+                    String name = document.getString("name");
+
+                    if (name == null || name.trim().isEmpty()) {
+                        callback.onError(new IllegalStateException("El perfil no tiene nombre."));
+                        return;
+                    }
+
+                    message.setSenderName(name.trim());
+
+                    String messageId = firestore.collection("chats")
+                            .document(chatId)
+                            .collection("messages")
+                            .document()
+                            .getId();
+
+                    message.setMessageId(messageId);
+
+                    firestore.collection("chats").document(chatId)
+                            .collection("messages").document(messageId)
+                            .set(message)
+                            .addOnSuccessListener(unused -> callback.onSuccess())
+                            .addOnFailureListener(error ->
+                                    callback.onError(error));
+                })
+                .addOnFailureListener(error -> callback.onError(error));
     }
 
     public interface UploadCallback {
@@ -83,7 +126,8 @@ public class ChatRepository {
                 .orderBy("timestamp", Query.Direction.ASCENDING)
                 .addSnapshotListener((value, error) -> {
                     if (error != null) {
-                        Log.w("ChatRepository", "Listen failed.", error);
+                        Log.w("ChatRepository", "Error leyendo mensajes", error);
+                        messagesReadError.setValue(true);
                         return;
                     }
 

@@ -16,10 +16,56 @@ import java.util.List;
 public class UserRepository {
     private final FirebaseFirestore firestore;
     private final FirebaseAuth auth;
+    private final MutableLiveData<Boolean> usersReadError = new MutableLiveData<>(false);
+    private final MutableLiveData<Boolean> profileReadError = new MutableLiveData<>(false);
+
+    public LiveData<Boolean> getUsersReadError() {
+        return usersReadError;
+    }
+
+    public LiveData<Boolean> getProfileReadError() {
+        return profileReadError;
+    }
+
+    public void clearUsersReadError() {
+        usersReadError.setValue(false);
+    }
+
+    public void clearProfileReadError() {
+        profileReadError.setValue(false);
+    }
 
     public UserRepository() {
         firestore = FirebaseFirestore.getInstance();
         auth = FirebaseAuth.getInstance();
+    }
+
+    public LiveData<User> getCurrentUserProfile() {
+        MutableLiveData<User> profileLiveData = new MutableLiveData<>();
+
+        if (auth.getCurrentUser() == null){
+            return profileLiveData;
+        }
+
+        String uid = auth.getCurrentUser().getUid();
+
+        firestore.collection("users").document(uid).get()
+                .addOnSuccessListener(document -> {
+                    User user = document.toObject(User.class);
+
+                    if (user == null) {
+                        profileReadError.setValue(true);
+                        return;
+                    }
+
+                    profileLiveData.setValue(user);
+                })
+                .addOnFailureListener(error -> {
+                    Log.e("UserRepository", "Error leyendo perfil", error);
+                    profileReadError.setValue(true);
+                });
+
+        return profileLiveData;
     }
 
     public LiveData<List<User>> getAllUsers() {
@@ -39,8 +85,10 @@ public class UserRepository {
                     }
                     usersLiveData.setValue(userList);
                 })
-                .addOnFailureListener(e -> Log.e("UserRepository", "Error obteniendo usuarios", e));
-
+                .addOnFailureListener(error -> {
+                    Log.e("UserRepository", "Error obteniendo usuarios", error);
+                    usersReadError.setValue(true);
+                });
         return usersLiveData;
     }
 }

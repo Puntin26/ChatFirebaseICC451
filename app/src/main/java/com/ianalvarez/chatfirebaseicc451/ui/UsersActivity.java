@@ -25,6 +25,7 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.ianalvarez.chatfirebaseicc451.R;
@@ -76,8 +77,7 @@ public class UsersActivity extends AppCompatActivity {
         etSearchUsers = findViewById(R.id.etSearchUsers);
         btnClearSearch = findViewById(R.id.btnClearSearch);
 
-        // Llenar datos del usuario logueado en el encabezado
-        setupCurrentUserInfo();
+
 
         // Configuración del Toolbar y menú de cierre de sesión
         Toolbar toolbarUsers = findViewById(R.id.toolbarUsers);
@@ -91,6 +91,24 @@ public class UsersActivity extends AppCompatActivity {
         });
 
         usersViewModel = new ViewModelProvider(this).get(UsersViewModel.class);
+
+        usersViewModel.getUsersReadError().observe(this, failed -> {
+            if (!Boolean.TRUE.equals(failed)) return;
+
+            Toast.makeText(this, R.string.users_read_error, Toast.LENGTH_LONG).show();
+            usersViewModel.clearUsersReadError();
+        });
+
+        usersViewModel.getProfileReadError().observe(this, failed -> {
+            if (!Boolean.TRUE.equals(failed)) return;
+
+            Toast.makeText(this, R.string.profile_read_error, Toast.LENGTH_LONG).show();
+            usersViewModel.clearProfileReadError();
+        });
+
+
+        // Llenar datos del usuario logueado en el encabezado
+        setupCurrentUserInfo();
         
         usersViewModel.getUsers().observe(this, userList -> {
             userAdapter = new UserAdapter(userList);
@@ -105,20 +123,27 @@ public class UsersActivity extends AppCompatActivity {
     }
 
     private void setupCurrentUserInfo() {
-        if (FirebaseAuth.getInstance().getCurrentUser() != null) {
-            String name = FirebaseAuth.getInstance().getCurrentUser().getDisplayName();
-            String email = FirebaseAuth.getInstance().getCurrentUser().getEmail();
-            
-            if (name == null || name.isEmpty()) {
-                name = "Mi Usuario";
+        usersViewModel.getCurrentUserProfile().observe(this, user -> {
+            if (user == null) {
+                return;
             }
-            
+
+            String name = user.getName();
+            String email = user.getEmail();
+
+            if (name == null || name.trim().isEmpty()) {
+                name = getString(R.string.profile_name_unavailable);
+            }
+
+            name = name.trim();
+
             txtMyName.setText(name);
             txtMyEmail.setText(email != null ? email : "");
             txtMyInitial.setText(name.substring(0, 1).toUpperCase());
-        }
+        });
     }
-    
+
+
     private void setupSearchLogic() {
         etSearchUsers.addTextChangedListener(new TextWatcher() {
             @Override

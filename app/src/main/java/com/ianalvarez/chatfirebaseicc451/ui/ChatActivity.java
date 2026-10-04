@@ -65,6 +65,53 @@ public class ChatActivity extends AppCompatActivity {
 
         // Configuración de MVVM y RecyclerView
         chatViewModel = new ViewModelProvider(this).get(ChatViewModel.class);
+
+        chatViewModel.getSending().observe(this, sending -> {
+            boolean enabled = !Boolean.TRUE.equals(sending);
+
+            btnSendMessage.setEnabled(enabled);
+            btnAttachImage.setEnabled(enabled);
+        });
+
+        chatViewModel.getSentText().observe(this, sentText -> {
+            if (sentText == null) {
+                return;
+            }
+
+            // Solo borra si el usuario no cambió lo escrito durante el envío.
+            String currentText = etMessageText.getText().toString().trim();
+
+            if (currentText.equals(sentText)) {
+                etMessageText.setText("");
+            }
+
+            chatViewModel.clearSendResult();
+        });
+
+        chatViewModel.getSendError().observe(this, error -> {
+            if (error == null) {
+                return;
+            }
+
+            Toast.makeText(
+                    this,
+                    R.string.message_send_error,
+                    Toast.LENGTH_LONG
+            ).show();
+
+            chatViewModel.clearSendResult();
+        });
+
+        chatViewModel.getMessagesReadError().observe(this, failed -> {
+            if (!Boolean.TRUE.equals(failed)) {
+                return;
+            }
+
+            Toast.makeText(this, R.string.messages_read_error, Toast.LENGTH_LONG).show();
+
+            chatViewModel.clearMessagesReadError();
+        });
+
         messageList = new ArrayList<>();
         
         // Recibir datos de la otra persona desde el Intent
@@ -88,18 +135,17 @@ public class ChatActivity extends AppCompatActivity {
         }
 
         messageAdapter = new MessageAdapter(messageList, currentUserId);
-        
-        // Inicializar el lanzador de galería (Photo Picker)
-        MutableLiveData<Boolean> uploadState = new MutableLiveData<>();
-        
+
         // Observador para saber cuándo se está subiendo una imagen y bloquear el botón mientras tanto
-        uploadState.observe(this, isUploading -> {
-            if (isUploading) {
-                btnAttachImage.setEnabled(false);
-                Toast.makeText(this, "Subiendo imagen...", Toast.LENGTH_SHORT).show();
-            } else {
-                btnAttachImage.setEnabled(true);
+
+        chatViewModel.getImageError().observe(this, error -> {
+            if (error == null) {
+                return;
             }
+
+            Toast.makeText(this, R.string.image_upload_error, Toast.LENGTH_LONG).show();
+
+            chatViewModel.clearImageError();
         });
 
         pickImageLauncher = registerForActivityResult(
@@ -107,7 +153,7 @@ public class ChatActivity extends AppCompatActivity {
                 uri -> {
                     if (uri != null) {
                         // Enviamos la URI de la imagen seleccionada para subirla a Storage
-                        chatViewModel.sendImageMessage(currentChatId, uri, uploadState);
+                        chatViewModel.sendImageMessage(currentChatId, uri);
                     }
                 }
         );
@@ -146,6 +192,5 @@ public class ChatActivity extends AppCompatActivity {
 
     private void sendMessage(String text) {
         chatViewModel.sendMessage(currentChatId, text);
-        etMessageText.setText("");
     }
 }

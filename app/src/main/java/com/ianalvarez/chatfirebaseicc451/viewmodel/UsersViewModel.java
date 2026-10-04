@@ -11,6 +11,22 @@ import java.util.List;
 public class UsersViewModel extends ViewModel {
     private final UserRepository userRepository;
     private LiveData<List<User>> usersLiveData;
+    private LiveData<User> currentUserProfile;
+    public LiveData<Boolean> getUsersReadError() {
+        return userRepository.getUsersReadError();
+    }
+
+    public LiveData<Boolean> getProfileReadError() {
+        return userRepository.getProfileReadError();
+    }
+
+    public void clearUsersReadError() {
+        userRepository.clearUsersReadError();
+    }
+    public void clearProfileReadError() {
+        userRepository.clearProfileReadError();
+    }
+
 
     public UsersViewModel() {
         userRepository = new UserRepository();
@@ -21,5 +37,13 @@ public class UsersViewModel extends ViewModel {
             usersLiveData = userRepository.getAllUsers();
         }
         return usersLiveData;
+    }
+
+    public LiveData<User> getCurrentUserProfile(){
+        if (currentUserProfile == null) {
+            currentUserProfile = userRepository.getCurrentUserProfile();
+        }
+
+        return currentUserProfile;
     }
 }
