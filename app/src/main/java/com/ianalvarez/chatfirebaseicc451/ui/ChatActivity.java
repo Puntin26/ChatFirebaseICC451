@@ -1,5 +1,6 @@
 package com.ianalvarez.chatfirebaseicc451.ui;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -32,7 +33,9 @@ public class ChatActivity extends AppCompatActivity {
     private ChatViewModel chatViewModel;
     private MessageAdapter messageAdapter;
     private List<Message> messageList;
-    private String currentChatId = "general_chat"; // Temporal, luego podemos hacerlo dinámico entre usuarios
+    private String currentChatId;
+    private String receiverId;
+    private String receiverName;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,7 +58,26 @@ public class ChatActivity extends AppCompatActivity {
         chatViewModel = new ViewModelProvider(this).get(ChatViewModel.class);
         messageList = new ArrayList<>();
         
+        // Recibir datos de la otra persona desde el Intent
+        Intent intent = getIntent();
+        receiverId = intent.getStringExtra("receiverId");
+        receiverName = intent.getStringExtra("receiverName");
+        
+        // Poner el nombre en la barra (ActionBar) superior, o podemos hacer un toolbar personalizado luego
+        if(getSupportActionBar() != null && receiverName != null) {
+             getSupportActionBar().setTitle(receiverName);
+        }
+
         String currentUserId = chatViewModel.getCurrentUserId();
+        
+        // Generar un ID de chat único combinando los dos IDs y ordenándolos alfabéticamente
+        // para que siempre sea el mismo chat sin importar quién escribe primero
+        if (currentUserId.compareTo(receiverId) < 0) {
+            currentChatId = currentUserId + "_" + receiverId;
+        } else {
+            currentChatId = receiverId + "_" + currentUserId;
+        }
+
         messageAdapter = new MessageAdapter(messageList, currentUserId);
         
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
