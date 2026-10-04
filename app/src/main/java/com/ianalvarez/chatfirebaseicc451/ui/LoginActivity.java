@@ -2,6 +2,7 @@ package com.ianalvarez.chatfirebaseicc451.ui;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.view.View;
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
@@ -35,7 +36,7 @@ public class LoginActivity extends AppCompatActivity {
         txtLoginPassword = findViewById(R.id.txtLoginPassword);
 
         Button btnLogin = findViewById(R.id.btnLogin);
-        TextView txtGoToRegister = findViewById(R.id.txtGoToRegister);
+        View layoutGoToRegister = findViewById(R.id.layoutGoToRegister);
 
         authViewModel = new ViewModelProvider(this).get(AuthViewModel.class);
 
@@ -53,7 +54,7 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
 
-        txtGoToRegister.setOnClickListener(view -> {
+        layoutGoToRegister.setOnClickListener(view -> {
             startActivity(new Intent(this, RegisterActivity.class));
             finish();
         });

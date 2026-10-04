@@ -5,10 +5,17 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.view.View;
+import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.content.ContextCompat;
@@ -31,6 +38,11 @@ public class UsersActivity extends AppCompatActivity {
     private RecyclerView rvUsers;
     private UserAdapter userAdapter;
     private UsersViewModel usersViewModel;
+    
+    // UI elements del encabezado y buscador
+    private TextView txtMyInitial, txtMyName, txtMyEmail, txtUserCount;
+    private EditText etSearchUsers;
+    private ImageButton btnClearSearch;
 
     // Lanzador para pedir permisos de notificaciones (Android 13+)
     private final ActivityResultLauncher<String> requestPermissionLauncher =
@@ -56,14 +68,23 @@ public class UsersActivity extends AppCompatActivity {
         rvUsers = findViewById(R.id.rvUsers);
         rvUsers.setLayoutManager(new LinearLayoutManager(this));
 
+        // Inicializar vistas del buscador y perfil
+        txtMyInitial = findViewById(R.id.txtMyInitial);
+        txtMyName = findViewById(R.id.txtMyName);
+        txtMyEmail = findViewById(R.id.txtMyEmail);
+        txtUserCount = findViewById(R.id.txtUserCount);
+        etSearchUsers = findViewById(R.id.etSearchUsers);
+        btnClearSearch = findViewById(R.id.btnClearSearch);
+
+        // Llenar datos del usuario logueado en el encabezado
+        setupCurrentUserInfo();
+
         // Configuración del Toolbar y menú de cierre de sesión
         Toolbar toolbarUsers = findViewById(R.id.toolbarUsers);
         toolbarUsers.inflateMenu(R.menu.menu_users);
         toolbarUsers.setOnMenuItemClickListener(item -> {
             if (item.getItemId() == R.id.action_logout) {
-                FirebaseAuth.getInstance().signOut();
-                startActivity(new Intent(this, LoginActivity.class));
-                finish();
+                confirmarCerrarSesion();
                 return true;
             }
             return false;
@@ -74,10 +95,73 @@ public class UsersActivity extends AppCompatActivity {
         usersViewModel.getUsers().observe(this, userList -> {
             userAdapter = new UserAdapter(userList);
             rvUsers.setAdapter(userAdapter);
+            txtUserCount.setText(userList.size() + " usuario(s)");
         });
+        
+        setupSearchLogic();
 
         // Solicitar permisos de notificación si es necesario
         askNotificationPermission();
+    }
+
+    private void setupCurrentUserInfo() {
+        if (FirebaseAuth.getInstance().getCurrentUser() != null) {
+            String name = FirebaseAuth.getInstance().getCurrentUser().getDisplayName();
+            String email = FirebaseAuth.getInstance().getCurrentUser().getEmail();
+            
+            if (name == null || name.isEmpty()) {
+                name = "Mi Usuario";
+            }
+            
+            txtMyName.setText(name);
+            txtMyEmail.setText(email != null ? email : "");
+            txtMyInitial.setText(name.substring(0, 1).toUpperCase());
+        }
+    }
+    
+    private void setupSearchLogic() {
+        etSearchUsers.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                if (s.length() > 0) {
+                    btnClearSearch.setVisibility(View.VISIBLE);
+                } else {
+                    btnClearSearch.setVisibility(View.GONE);
+                }
+                
+                if (userAdapter != null) {
+                    userAdapter.filterList(s.toString());
+                    // Opcional: actualizar el contador al filtrar, el adapter podría exponer su tamaño actual
+                    txtUserCount.setText(userAdapter.getItemCount() + " usuario(s)");
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {}
+        });
+
+        btnClearSearch.setOnClickListener(v -> {
+            etSearchUsers.setText("");
+        });
+    }
+
+    private void confirmarCerrarSesion() {
+        new AlertDialog.Builder(this)
+                .setTitle("Cerrar sesión")
+                .setMessage("¿Seguro que quieres salir de tu cuenta?")
+                .setPositiveButton("Salir", (dialog, which) -> {
+                    FirebaseAuth.getInstance().signOut();
+                    Intent intent = new Intent(this, LoginActivity.class);
+                    // Borra el historial para que no pueda volver atrás con el botón de retroceso
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    startActivity(intent);
+                    finish();
+                })
+                .setNegativeButton("Cancelar", null)
+                .show();
     }
 
     private void askNotificationPermission() {
