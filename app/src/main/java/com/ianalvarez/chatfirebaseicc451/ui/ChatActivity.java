@@ -1,12 +1,16 @@
 package com.ianalvarez.chatfirebaseicc451.ui;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -36,6 +40,9 @@ public class ChatActivity extends AppCompatActivity {
     private String currentChatId;
     private String receiverId;
     private String receiverName;
+
+    // Para seleccionar imágenes
+    private ActivityResultLauncher<String> pickImageLauncher;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -80,6 +87,18 @@ public class ChatActivity extends AppCompatActivity {
 
         messageAdapter = new MessageAdapter(messageList, currentUserId);
         
+        // Inicializar el lanzador de galería (Photo Picker)
+        pickImageLauncher = registerForActivityResult(
+                new ActivityResultContracts.GetContent(),
+                uri -> {
+                    if (uri != null) {
+                        Log.d("ChatActivity", "Imagen seleccionada: " + uri.toString());
+                        // TODO: Pasaremos este 'uri' al ViewModel para subir a Firebase Storage
+                        Toast.makeText(this, "Imagen seleccionada. Subiendo...", Toast.LENGTH_SHORT).show();
+                    }
+                }
+        );
+        
         LinearLayoutManager layoutManager = new LinearLayoutManager(this);
         layoutManager.setStackFromEnd(true); // Para que los mensajes salgan desde abajo
         rvMessages.setLayoutManager(layoutManager);
@@ -96,7 +115,7 @@ public class ChatActivity extends AppCompatActivity {
             }
         });
 
-        // Configuración para evitar mensajes vacíos (Requisito de la rúbrica)
+        // Configuración para evitar mensajes vacíos
         btnSendMessage.setOnClickListener(v -> {
             String message = etMessageText.getText().toString().trim();
             if (message.isEmpty()) {
@@ -106,9 +125,9 @@ public class ChatActivity extends AppCompatActivity {
             }
         });
         
-        // El botón de adjuntar imagen lo preparamos para el Sábado
+        // El botón de adjuntar imagen lanza el selector de imágenes
         btnAttachImage.setOnClickListener(v -> {
-            Toast.makeText(this, "Función de adjuntar imagen próximamente", Toast.LENGTH_SHORT).show();
+            pickImageLauncher.launch("image/*");
         });
     }
 
