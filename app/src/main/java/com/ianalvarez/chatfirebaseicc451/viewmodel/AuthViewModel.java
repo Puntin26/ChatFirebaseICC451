@@ -4,18 +4,21 @@ import android.util.Patterns;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
-import androidx.lifecycle.ViewModel;
+import android.app.Application;
+import androidx.lifecycle.AndroidViewModel;
 
+import com.ianalvarez.chatfirebaseicc451.R;
 import com.ianalvarez.chatfirebaseicc451.repository.AuthRepository;
 
 
-public class AuthViewModel extends ViewModel {
+public class AuthViewModel extends AndroidViewModel {
     private final AuthRepository authRepository;
     private final MutableLiveData<RegisterResult> registerResult;
     private final MutableLiveData<LoginResult> loginResult;
 
 
-    public AuthViewModel() {
+    public AuthViewModel(Application application) {
+        super(application);
         authRepository = new AuthRepository();
         registerResult = new MutableLiveData<>();
         loginResult = new MutableLiveData<>();
@@ -35,34 +38,34 @@ public class AuthViewModel extends ViewModel {
         email = email.trim();
 
         if (name.isEmpty()) {
-            registerResult.setValue(new RegisterResult(false, "Ingresa tu nombre."));
+            registerResult.setValue(new RegisterResult(false, getApplication().getString(R.string.auth_name_required)));
             return;
         }
 
         if (email.isEmpty() || !Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            registerResult.setValue(new RegisterResult(false, "Ingresa un correo válido."));
+            registerResult.setValue(new RegisterResult(false, getApplication().getString(R.string.auth_email_invalid)));
             return;
         }
 
         if (password.length() < 6) {
-            registerResult.setValue(new RegisterResult(false, "La contraseña debe tener al menos 6 caracteres."));
+            registerResult.setValue(new RegisterResult(false, getApplication().getString(R.string.auth_password_short)));
             return;
         }
 
         if (!password.equals(confirmPassword)) {
-            registerResult.setValue(new RegisterResult(false, "Las contraseñas no coinciden."));
+            registerResult.setValue(new RegisterResult(false, getApplication().getString(R.string.auth_password_mismatch)));
             return;
         }
 
         authRepository.register(name, email, password, new AuthRepository.RegisterCallback() {
             @Override
             public void onSuccess() {
-                registerResult.setValue(new RegisterResult(true, "Cuenta creada correctamente."));
+                registerResult.setValue(new RegisterResult(true, getApplication().getString(R.string.auth_register_success)));
             }
 
             @Override
             public void onError(String message) {
-                registerResult.setValue(new RegisterResult(false, message));
+                registerResult.setValue(new RegisterResult(false, getRegisterErrorMessage(message)));
             }
         });
     }
@@ -71,19 +74,19 @@ public class AuthViewModel extends ViewModel {
         email = email.trim();
 
         if (email.isEmpty() || !Patterns.EMAIL_ADDRESS.matcher(email).matches()){
-            loginResult.setValue(new LoginResult(false, "Ingrese un correo valido"));
+            loginResult.setValue(new LoginResult(false, getApplication().getString(R.string.auth_email_invalid)));
             return;
         }
 
         if (password.isEmpty()){
-            loginResult.setValue(new LoginResult(false, "Ingrese su contraseña"));
+            loginResult.setValue(new LoginResult(false, getApplication().getString(R.string.auth_password_required)));
             return;
         }
 
         authRepository.login(email, password, new AuthRepository.LoginCallback() {
             @Override
             public void onSuccess() {
-                loginResult.setValue(new LoginResult(true, "Sesion Iniciada"));
+                loginResult.setValue(new LoginResult(true, getApplication().getString(R.string.auth_login_success)));
             }
             @Override
             public void onError(String message) {
@@ -91,6 +94,26 @@ public class AuthViewModel extends ViewModel {
             }
         });
     }
+
+    private String getRegisterErrorMessage(String error) {
+            if (error == null) {
+                return getApplication().getString(R.string.auth_create_failed);
+            }
+
+            switch (error) {
+                case "account_creation_failed":
+                    return getApplication().getString(R.string.auth_create_failed);
+
+                case "created_user_missing":
+                    return getApplication().getString(R.string.auth_created_user_missing);
+
+                case "profile_save_failed":
+                    return getApplication().getString(R.string.auth_profile_save_failed);
+
+                default:
+                    return error;
+            }
+        }
 
     public static class RegisterResult {
 

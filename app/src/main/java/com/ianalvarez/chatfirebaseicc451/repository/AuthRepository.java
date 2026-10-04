@@ -1,5 +1,8 @@
 package com.ianalvarez.chatfirebaseicc451.repository;
 
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
+
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -29,7 +32,7 @@ public class AuthRepository {
         auth.createUserWithEmailAndPassword(email, password).addOnCompleteListener(task -> {
 
             if (!task.isSuccessful()) {
-                String message = task.getException() != null ? task.getException().getMessage() : "No se pudo crear la cuenta.";
+                String message = task.getException() != null ? task.getException().getMessage() : "account_creation_failed";
 
                 callback.onError(message);
                 return;
@@ -38,7 +41,7 @@ public class AuthRepository {
             FirebaseUser firebaseUser = auth.getCurrentUser();
 
             if (firebaseUser == null) {
-                callback.onError("No se pudo obtener el usuario creado.");
+                callback.onError("created_user_missing");
                 return;
             }
 
@@ -46,7 +49,7 @@ public class AuthRepository {
 
             db.collection("users").document(firebaseUser.getUid()).set(user)
                     .addOnSuccessListener(unused -> callback.onSuccess())
-                    .addOnFailureListener(error -> callback.onError("La cuenta fue creada, pero no se pudo guardar el perfil."));
+                    .addOnFailureListener(error -> callback.onError("profile_save_failed"));
         });
     }
 

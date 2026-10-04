@@ -47,7 +47,7 @@
             android:layout_height="48dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:src="@android:drawable/ic_menu_camera"
-            android:contentDescription="Adjuntar imagen" />
+            android:contentDescription="@string/attach_image" />
 
         <EditText
             android:id="@+id/etMessageText"
@@ -57,7 +57,7 @@
             android:layout_marginStart="8dp"
             android:layout_marginEnd="8dp"
             android:background="@android:color/transparent"
-            android:hint="Escribe un mensaje..."
+            android:hint="@string/message_hint"
             android:inputType="textMultiLine"
             android:maxLines="4"
             android:minHeight="48dp"
@@ -69,7 +69,7 @@
             android:layout_height="48dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:src="@android:drawable/ic_menu_send"
-            android:contentDescription="Enviar mensaje" />
+            android:contentDescription="@string/send_message" />
 
     </LinearLayout>
 

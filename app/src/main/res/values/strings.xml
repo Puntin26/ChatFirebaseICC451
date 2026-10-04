@@ -20,4 +20,39 @@
     <string name="messages_read_error">No se pudo cargar el historial de mensajes.</string>
     <string name="users_read_error">No se pudo cargar la lista de usuarios.</string>
     <string name="profile_read_error">No se pudo cargar tu perfil.</string>
+
+    <string name="logout_title">Cerrar sesión</string>
+    <string name="logout_message">¿Seguro que quieres salir de tu cuenta?</string>
+    <string name="logout_confirm">Salir</string>
+    <string name="cancel">Cancelar</string>
+    <string name="chat_title">Chat</string>
+    <string name="message_empty_error">El mensaje no puede estar vacío</string>
+    <string name="attach_image">Adjuntar imagen</string>
+    <string name="message_hint">Escribe un mensaje...</string>
+    <string name="send_message">Enviar mensaje</string>
+    <string name="search">Buscar</string>
+    <string name="search_users_hint">Buscar por nombre o correo</string>
+    <string name="clear_search">Limpiar</string>
+    <string name="open_chat">Abrir chat</string>
+
+    <string name="chat_notification_channel">Notificaciones de Chat</string>
+    <string name="notification_title">Nuevo mensaje</string>
+    <string name="notification_body">Tienes un mensaje nuevo.</string>
+
+    <string name="login_logo_description">ChatFirebase Logo</string>
+    <string name="login_brand">ChatFireBase</string>
+    <string name="login_no_account">"¿No tienes una cuenta? "</string>
+    <string name="login_register_link">Regístrate</string>
+
+    <string name="auth_name_required">Ingresa tu nombre.</string>
+    <string name="auth_email_invalid">Ingresa un correo válido.</string>
+    <string name="auth_password_short">La contraseña debe tener al menos 6 caracteres.</string>
+    <string name="auth_password_mismatch">Las contraseñas no coinciden.</string>
+    <string name="auth_register_success">Cuenta creada correctamente.</string>
+    <string name="auth_password_required">Ingresa tu contraseña.</string>
+    <string name="auth_login_success">Sesión iniciada.</string>
+
+    <string name="auth_create_failed">No se pudo crear la cuenta.</string>
+    <string name="auth_created_user_missing">No se pudo obtener el usuario creado.</string>
+    <string name="auth_profile_save_failed">La cuenta fue creada, pero no se pudo guardar el perfil.</string>
 </resources>

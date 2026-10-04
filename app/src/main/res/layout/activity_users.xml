@@ -83,7 +83,7 @@
             android:layout_height="24dp"
             android:layout_marginStart="12dp"
             android:src="@drawable/ic_search"
-            android:contentDescription="Buscar" />
+            android:contentDescription="@string/search" />
 
         <EditText
             android:id="@+id/etSearchUsers"
@@ -91,7 +91,7 @@
             android:layout_height="match_parent"
             android:layout_weight="1"
             android:background="@android:color/transparent"
-            android:hint="Buscar por nombre o correo"
+            android:hint="@string/search_users_hint"
             android:inputType="textPersonName"
             android:paddingHorizontal="8dp"
             android:textColor="@color/black"
@@ -105,7 +105,7 @@
             android:src="@android:drawable/ic_menu_close_clear_cancel"
             app:tint="#757575"
             android:visibility="gone"
-            android:contentDescription="Limpiar" />
+            android:contentDescription="@string/clear_search" />
     </LinearLayout>
 
     <!-- Contador -->

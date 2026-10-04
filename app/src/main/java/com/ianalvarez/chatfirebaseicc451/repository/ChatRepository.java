@@ -23,6 +23,8 @@ import java.io.InputStream;
 
 
 import com.ianalvarez.chatfirebaseicc451.model.Message;
+import com.google.firebase.firestore.ListenerRegistration;
+
 
 import java.util.ArrayList;
 import java.util.List;
@@ -31,6 +33,7 @@ public class ChatRepository {
 
     private final FirebaseFirestore firestore;
     private final FirebaseAuth auth;
+    private ListenerRegistration messagesListener;
     private final MutableLiveData<Boolean> messagesReadError = new MutableLiveData<>(false);
 
     public LiveData<Boolean> getMessagesReadError() {
@@ -178,8 +181,8 @@ public class ChatRepository {
         MutableLiveData<List<Message>> messagesLiveData = new MutableLiveData<>();
 
         // Escuchar cambios en tiempo real ordenados por timestamp
-        firestore.collection("chats").document(chatId).collection("messages")
-                .orderBy("timestamp", Query.Direction.ASCENDING)
+        messagesListener = firestore.collection("chats")
+                .document(chatId).collection("messages")                .orderBy("timestamp", Query.Direction.ASCENDING)
                 .addSnapshotListener((value, error) -> {
                     if (error != null) {
                         Log.w("ChatRepository", "Error leyendo mensajes", error);
@@ -199,4 +202,12 @@ public class ChatRepository {
 
         return messagesLiveData;
     }
+
+    public void removeMessagesListener() {
+        if (messagesListener != null) {
+            messagesListener.remove();
+            messagesListener = null;
+        }
+    }
+
 }

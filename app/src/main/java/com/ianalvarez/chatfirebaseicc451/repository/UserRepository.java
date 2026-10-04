@@ -104,4 +104,8 @@ public class UserRepository {
                 });
         return usersLiveData;
     }
+    public void logout() {
+        auth.signOut();
+    }
+
 }

@@ -50,4 +50,8 @@ public class UsersViewModel extends ViewModel {
 
         return currentUserProfile;
     }
+
+    public void logout() {
+        userRepository.logout();
+    }
 }

@@ -134,4 +134,12 @@ public class ChatViewModel extends ViewModel {
         }
         return messagesLiveData;
     }
+
+    @Override
+    protected void onCleared() {
+        chatRepository.removeMessagesListener();
+        super.onCleared();
+    }
+
+
 }

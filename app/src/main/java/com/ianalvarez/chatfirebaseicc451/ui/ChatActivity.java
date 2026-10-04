@@ -120,7 +120,7 @@ public class ChatActivity extends AppCompatActivity {
         
         // Configurar la barra superior con nombre y botón de retroceso
         Toolbar toolbarChat = findViewById(R.id.toolbarChat);
-        toolbarChat.setTitle(receiverName != null ? receiverName : "Chat");
+        toolbarChat.setTitle(receiverName != null ? receiverName : getString(R.string.chat_title));
         toolbarChat.setNavigationOnClickListener(v -> finish()); // Retroceder al darle clic
 
         String currentUserId = chatViewModel.getCurrentUserId();
@@ -178,7 +178,7 @@ public class ChatActivity extends AppCompatActivity {
         btnSendMessage.setOnClickListener(v -> {
             String message = etMessageText.getText().toString().trim();
             if (message.isEmpty()) {
-                Toast.makeText(this, "El mensaje no puede estar vacío", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, R.string.message_empty_error, Toast.LENGTH_SHORT).show();
             } else {
                 sendMessage(message);
             }

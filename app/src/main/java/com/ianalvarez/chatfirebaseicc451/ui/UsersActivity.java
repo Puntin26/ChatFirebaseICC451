@@ -185,17 +185,16 @@ public class UsersActivity extends AppCompatActivity {
 
     private void confirmarCerrarSesion() {
         new AlertDialog.Builder(this)
-                .setTitle("Cerrar sesión")
-                .setMessage("¿Seguro que quieres salir de tu cuenta?")
-                .setPositiveButton("Salir", (dialog, which) -> {
-                    FirebaseAuth.getInstance().signOut();
+                .setTitle(R.string.logout_title)
+                .setMessage(R.string.logout_message)
+                .setPositiveButton(R.string.logout_confirm, (dialog, which) -> {usersViewModel.logout();
                     Intent intent = new Intent(this, LoginActivity.class);
                     // Borra el historial para que no pueda volver atrás con el botón de retroceso
                     intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
                     startActivity(intent);
                     finish();
                 })
-                .setNegativeButton("Cancelar", null)
+                .setNegativeButton(R.string.cancel, null)
                 .show();
     }
 

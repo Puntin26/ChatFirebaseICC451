@@ -54,9 +54,8 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
         // A partir de Android Oreo (API 26) se exigen "Canales de Notificación"
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            NotificationChannel channel = new NotificationChannel(
-                    channelId, 
-                    "Notificaciones de Chat", 
+            NotificationChannel channel = new NotificationChannel(channelId,
+                    getString(R.string.chat_notification_channel),
                     NotificationManager.IMPORTANCE_HIGH
             );
             notificationManager.createNotificationChannel(channel);
@@ -74,8 +73,8 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
 
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, channelId)
                 .setSmallIcon(android.R.drawable.ic_dialog_info) // Ícono por defecto
-                .setContentTitle(title != null ? title : "Nuevo mensaje")
-                .setContentText(body != null ? body : "Tienes un mensaje nuevo.")
+                .setContentTitle(title != null ? title : getString(R.string.notification_title))
+                .setContentText(body != null ? body : getString(R.string.notification_body))
                 .setAutoCancel(true) // La notificación se borra al tocarla
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setContentIntent(pendingIntent);
