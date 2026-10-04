@@ -11,6 +11,8 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
+import android.util.Log;
+import com.google.firebase.messaging.FirebaseMessaging;
 
 import androidx.activity.EdgeToEdge;
 import androidx.activity.result.ActivityResultLauncher;
@@ -120,6 +122,14 @@ public class UsersActivity extends AppCompatActivity {
 
         // Solicitar permisos de notificación si es necesario
         askNotificationPermission();
+
+        FirebaseMessaging.getInstance().getToken()
+                .addOnSuccessListener(token -> {
+                    Log.d("FCM", "Token actual: " + token);
+                    usersViewModel.saveFcmToken(token);
+                })
+                .addOnFailureListener(error ->
+                        Log.e("FCM", "Error al obtener token", error));
     }
 
     private void setupCurrentUserInfo() {

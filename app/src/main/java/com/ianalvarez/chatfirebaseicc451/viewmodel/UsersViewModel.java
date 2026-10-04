@@ -23,6 +23,10 @@ public class UsersViewModel extends ViewModel {
     public void clearUsersReadError() {
         userRepository.clearUsersReadError();
     }
+
+    public void saveFcmToken(String token) {
+        userRepository.saveFcmToken(token);
+    }
     public void clearProfileReadError() {
         userRepository.clearProfileReadError();
     }

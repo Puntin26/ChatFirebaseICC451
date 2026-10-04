@@ -68,6 +68,19 @@ public class UserRepository {
         return profileLiveData;
     }
 
+    public void saveFcmToken(String token) {
+        if (auth.getCurrentUser() == null) return;
+
+        String uid = auth.getCurrentUser().getUid();
+
+        firestore.collection("users").document(uid)
+                .update("fcmToken", token)
+                .addOnSuccessListener(unused ->
+                        Log.d("FCM", "Token guardado en Firestore"))
+                .addOnFailureListener(error ->
+                        Log.e("FCM", "Error guardando token", error));
+    }
+
     public LiveData<List<User>> getAllUsers() {
         MutableLiveData<List<User>> usersLiveData = new MutableLiveData<>();
         String currentUserId = auth.getCurrentUser() != null ? auth.getCurrentUser().getUid() : "";
