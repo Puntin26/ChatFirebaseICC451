@@ -12,9 +12,11 @@ import androidx.activity.EdgeToEdge;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -70,10 +72,10 @@ public class ChatActivity extends AppCompatActivity {
         receiverId = intent.getStringExtra("receiverId");
         receiverName = intent.getStringExtra("receiverName");
         
-        // Poner el nombre en la barra (ActionBar) superior, o podemos hacer un toolbar personalizado luego
-        if(getSupportActionBar() != null && receiverName != null) {
-             getSupportActionBar().setTitle(receiverName);
-        }
+        // Configurar la barra superior con nombre y botón de retroceso
+        Toolbar toolbarChat = findViewById(R.id.toolbarChat);
+        toolbarChat.setTitle(receiverName != null ? receiverName : "Chat");
+        toolbarChat.setNavigationOnClickListener(v -> finish()); // Retroceder al darle clic
 
         String currentUserId = chatViewModel.getCurrentUserId();
         
@@ -88,13 +90,24 @@ public class ChatActivity extends AppCompatActivity {
         messageAdapter = new MessageAdapter(messageList, currentUserId);
         
         // Inicializar el lanzador de galería (Photo Picker)
+        MutableLiveData<Boolean> uploadState = new MutableLiveData<>();
+        
+        // Observador para saber cuándo se está subiendo una imagen y bloquear el botón mientras tanto
+        uploadState.observe(this, isUploading -> {
+            if (isUploading) {
+                btnAttachImage.setEnabled(false);
+                Toast.makeText(this, "Subiendo imagen...", Toast.LENGTH_SHORT).show();
+            } else {
+                btnAttachImage.setEnabled(true);
+            }
+        });
+
         pickImageLauncher = registerForActivityResult(
                 new ActivityResultContracts.GetContent(),
                 uri -> {
                     if (uri != null) {
-                        Log.d("ChatActivity", "Imagen seleccionada: " + uri.toString());
-                        // TODO: Pasaremos este 'uri' al ViewModel para subir a Firebase Storage
-                        Toast.makeText(this, "Imagen seleccionada. Subiendo...", Toast.LENGTH_SHORT).show();
+                        // Enviamos la URI de la imagen seleccionada para subirla a Storage
+                        chatViewModel.sendImageMessage(currentChatId, uri, uploadState);
                     }
                 }
         );

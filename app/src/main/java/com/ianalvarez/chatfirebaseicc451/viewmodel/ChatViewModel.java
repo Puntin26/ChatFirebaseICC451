@@ -1,6 +1,9 @@
 package com.ianalvarez.chatfirebaseicc451.viewmodel;
 
+import android.net.Uri;
+
 import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 import com.ianalvarez.chatfirebaseicc451.model.Message;
@@ -28,6 +31,34 @@ public class ChatViewModel extends ViewModel {
 
         Message message = new Message("", senderId, senderName, text, timestamp, null);
         chatRepository.sendMessage(chatId, message);
+    }
+
+    public void sendImageMessage(String chatId, Uri imageUri, MutableLiveData<Boolean> uploadState) {
+        // Indicamos que empezó a subir
+        uploadState.setValue(true);
+        
+        chatRepository.uploadImage(imageUri, chatId, new ChatRepository.UploadCallback() {
+            @Override
+            public void onSuccess(String imageUrl) {
+                // Cuando se sube la imagen, creamos el mensaje de texto vacío (o con la foto)
+                String senderId = chatRepository.getCurrentUserId();
+                String senderName = chatRepository.getCurrentUserName();
+                long timestamp = System.currentTimeMillis();
+
+                // Aquí sí mandamos la URL de la imagen
+                Message message = new Message("", senderId, senderName, "", timestamp, imageUrl);
+                chatRepository.sendMessage(chatId, message);
+                
+                // Indicamos que terminó de subir
+                uploadState.setValue(false);
+            }
+
+            @Override
+            public void onError(String error) {
+                // Indicamos que terminó (con error)
+                uploadState.setValue(false);
+            }
+        });
     }
 
     public LiveData<List<Message>> getMessages(String chatId) {

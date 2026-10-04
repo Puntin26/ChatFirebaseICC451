@@ -1,5 +1,6 @@
 package com.ianalvarez.chatfirebaseicc451.repository;
 
+import android.net.Uri;
 import android.util.Log;
 
 import androidx.lifecycle.LiveData;
@@ -9,6 +10,8 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 import com.ianalvarez.chatfirebaseicc451.model.Message;
 
 import java.util.ArrayList;
@@ -18,10 +21,12 @@ public class ChatRepository {
 
     private final FirebaseFirestore firestore;
     private final FirebaseAuth auth;
+    private final FirebaseStorage storage;
 
     public ChatRepository() {
         firestore = FirebaseFirestore.getInstance();
         auth = FirebaseAuth.getInstance();
+        storage = FirebaseStorage.getInstance();
     }
 
     public String getCurrentUserId() {
@@ -47,6 +52,27 @@ public class ChatRepository {
                 .set(message)
                 .addOnSuccessListener(aVoid -> Log.d("ChatRepository", "Mensaje enviado exitosamente"))
                 .addOnFailureListener(e -> Log.e("ChatRepository", "Error enviando el mensaje", e));
+    }
+
+    public interface UploadCallback {
+        void onSuccess(String imageUrl);
+        void onError(String error);
+    }
+
+    public void uploadImage(Uri imageUri, String chatId, UploadCallback callback) {
+        // Creamos una referencia única para la imagen basada en el tiempo
+        String fileName = "chat_images/" + chatId + "/" + System.currentTimeMillis() + ".jpg";
+        StorageReference imageRef = storage.getReference().child(fileName);
+
+        // Subimos la imagen
+        imageRef.putFile(imageUri)
+                .addOnSuccessListener(taskSnapshot -> {
+                    // Si se subió con éxito, obtenemos la URL pública
+                    imageRef.getDownloadUrl()
+                            .addOnSuccessListener(uri -> callback.onSuccess(uri.toString()))
+                            .addOnFailureListener(e -> callback.onError(e.getMessage()));
+                })
+                .addOnFailureListener(e -> callback.onError(e.getMessage()));
     }
 
     public LiveData<List<Message>> getMessages(String chatId) {
