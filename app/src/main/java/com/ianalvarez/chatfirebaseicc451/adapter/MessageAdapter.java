@@ -9,6 +9,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.ianalvarez.chatfirebaseicc451.R;
 import com.ianalvarez.chatfirebaseicc451.model.Message;
 
@@ -90,10 +91,10 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
 
             txtSentTime.setText(time);
 
-            // La lógica de mostrar la imagen se usará el sábado
+            // La lógica de mostrar la imagen
             if (message.getImageUrl() != null && !message.getImageUrl().isEmpty()) {
                 imgSent.setVisibility(View.VISIBLE);
-                // Glide.with(itemView.getContext()).load(message.getImageUrl()).into(imgSent);
+                Glide.with(itemView.getContext()).load(message.getImageUrl()).into(imgSent);
             } else {
                 imgSent.setVisibility(View.GONE);
             }
@@ -124,10 +125,10 @@ public class MessageAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder
 
             txtReceivedTime.setText(time);
 
-            // La lógica de mostrar la imagen se usará el sábado
+            // La lógica de mostrar la imagen
             if (message.getImageUrl() != null && !message.getImageUrl().isEmpty()) {
                 imgReceived.setVisibility(View.VISIBLE);
-                // Glide.with(itemView.getContext()).load(message.getImageUrl()).into(imgReceived);
+                Glide.with(itemView.getContext()).load(message.getImageUrl()).into(imgReceived);
             } else {
                 imgReceived.setVisibility(View.GONE);
             }
