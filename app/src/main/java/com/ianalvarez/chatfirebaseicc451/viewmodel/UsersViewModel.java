@@ -1,4 +1,25 @@
 package com.ianalvarez.chatfirebaseicc451.viewmodel;
 
-public class UsersViewModel {
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.ViewModel;
+
+import com.ianalvarez.chatfirebaseicc451.model.User;
+import com.ianalvarez.chatfirebaseicc451.repository.UserRepository;
+
+import java.util.List;
+
+public class UsersViewModel extends ViewModel {
+    private final UserRepository userRepository;
+    private LiveData<List<User>> usersLiveData;
+
+    public UsersViewModel() {
+        userRepository = new UserRepository();
+    }
+
+    public LiveData<List<User>> getUsers() {
+        if (usersLiveData == null) {
+            usersLiveData = userRepository.getAllUsers();
+        }
+        return usersLiveData;
+    }
 }
